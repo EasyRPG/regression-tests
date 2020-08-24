@@ -34,6 +34,11 @@ bool starts_with(const std::string& str, const std::string& start) {
 		   0 == str.compare(0, start.length(), start);
 }
 
+bool ends_with(const std::string& str, const std::string& end) {
+	return str.length() >= end.length() &&
+		0 == str.compare(str.length() - end.length(), end.length(), end);
+}
+
 std::vector<std::string> tokenize(const std::string &str_to_tokenize) {
 	std::vector<std::string> tokens;
 	std::string cur_token;

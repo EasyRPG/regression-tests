@@ -56,6 +56,11 @@ bool onStartup(char *pluginName) {
 		Input::Init(config.input_file);
 	}
 
+	if (config.do_regtest) {
+		DeleteFileA(config.regtest_savegame.c_str());
+		Hooks::HookCreateFile(config.regtest_savegame);
+	}
+
 	return true;
 }
 
@@ -72,6 +77,8 @@ void onNewGame() {
 }
 
 void onFrame (RPG::Scene scene) {
+	static int last_written_save = 0;
+
 	if (config.do_input_playback) {
 		printf("%d ", RPG::system->frameCounter);
 
@@ -86,9 +93,11 @@ void onFrame (RPG::Scene scene) {
 		printf("\n");
 	}
 
-	// TODO: Write Concatted save
-	if (config.do_regtest) {
-		RPG::fileSaveLoad->saveFile(RPG::system->frameCounter);
+	if (scene != RPG::SCENE_TITLE &&
+			config.do_regtest &&
+			RPG::system->frameCounter > last_written_save) {
+		RPG::fileSaveLoad->saveFile(42);
+		last_written_save = RPG::system->frameCounter;
 	}
 }
 
