@@ -1,0 +1,4 @@
+*.o
+*.a
+*.dll
+local.mk
