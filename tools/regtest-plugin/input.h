@@ -75,11 +75,16 @@ namespace Input {
 			}
 		}
 		if (RPG::system->frameCounter == last_read_frame) {
+			bool first = true;
 			for (const auto& key : keys) {
 				auto it = std::find_if(pressed_buttons.begin(), pressed_buttons.end(),
 					[&key](bm_struct& bm) { return !strcmp(bm.button, key.c_str()); });
 				if (it != pressed_buttons.end()) {
-					printf("%s,", it->button);
+					if (!first) {
+						printf(",");
+					}
+					first = false;
+					printf("%s", it->button);
 					it->pressed = true;
 				}
 			}
