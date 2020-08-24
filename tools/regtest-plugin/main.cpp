@@ -61,6 +61,8 @@ bool onStartup(char *pluginName) {
 		Hooks::HookCreateFile(config.regtest_savegame);
 	}
 
+	HookRng();
+
 	return true;
 }
 

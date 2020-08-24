@@ -8,6 +8,7 @@ namespace Hooks {
 	subhook::Hook CreateFile_hook;
 	std::string savefile;
 
+	// chosen by a fair dice roll.
 	unsigned char random_asm[] = {
 		0xb8, 0x04, 0x00, 0x00, 0x00, 0xc3
 	}; // mov eax, 4; ret
@@ -43,13 +44,15 @@ namespace Hooks {
 		// Hook GetAsyncKeyState
 		GetAsyncKeyState_hook.Install((void *)GetAsyncKeyState, (void *)MyGetAsyncKeyState);
 		CreateFile_hook.Install((void *)CreateFileA, (void *)MyCreateFileA);
-
-		// Hook RNG
-		memcpy((DWORD*)0x00403054, random_asm, 6);
 	};
 
 	void HookCreateFile(const std::string regtest_savegame) {
 		CreateFile_hook.Install((void *)CreateFileA, (void *)MyCreateFileA);
 		savefile = regtest_savegame;
+	}
+
+	void HookRng() {
+		// Hook RNG
+		memcpy((DWORD*)0x00403054, random_asm, 6);
 	}
 }
