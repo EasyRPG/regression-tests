@@ -6,6 +6,7 @@
 namespace Hooks {
 	subhook::Hook GetAsyncKeyState_hook;
 	subhook::Hook CreateFile_hook;
+	subhook::Hook GetLocalTime_hook;
 	std::string savefile;
 
 	// chosen by a fair dice roll.
@@ -40,6 +41,18 @@ namespace Hooks {
 		return ((createFile_t)CreateFile_hook.GetTrampoline())(lpFileName, dwDesiredAccess, a, b, dwCreationDisposition, c, d);
 	}
 
+	__stdcall void MyGetLocalTime(LPSYSTEMTIME st) {
+		// When converted to a Delphi Date this is 0
+		st->wYear = 1899;
+		st->wMonth = 12;
+		st->wDayOfWeek = 6; // Saturday
+		st->wDay = 30;
+		st->wHour = 0;
+		st->wMinute = 0;
+		st->wSecond = 0;
+		st->wMilliseconds = 0;
+	}
+
 	void HookGetAsyncKeyState() {
 		// Hook GetAsyncKeyState
 		GetAsyncKeyState_hook.Install((void *)GetAsyncKeyState, (void *)MyGetAsyncKeyState);
@@ -54,5 +67,9 @@ namespace Hooks {
 	void HookRng() {
 		// Hook RNG
 		memcpy((DWORD*)0x00403054, random_asm, 6);
+	}
+
+	void HookGetLocalTime() {
+		GetLocalTime_hook.Install((void *)GetLocalTime, (void *)MyGetLocalTime);
 	}
 }

@@ -61,7 +61,8 @@ bool onStartup(char *pluginName) {
 		Hooks::HookCreateFile(config.regtest_savegame);
 	}
 
-	HookRng();
+	Hooks::HookRng();
+	Hooks::HookGetLocalTime();
 
 	return true;
 }
