@@ -19,6 +19,7 @@ struct {
 	std::string input_file;
 	bool do_regtest = false;
 	bool do_input_playback = false;
+	bool enable_hooks = true;
 } config;
 
 void ParseCommandLine() {
@@ -42,14 +43,19 @@ void ParseCommandLine() {
 				std::cout << "Regression Test: " << config.regtest_savegame << "\n";
 			}
 		}
+		else if (!lstrcmpW(argv[i], L"--disable-hooks")) {
+			config.enable_hooks = false;
+			std::cout << "All hooks disabled\n";
+		}
 	}
 }
 
 bool onStartup(char *pluginName) {
-	DWORD old_protect;
-	VirtualProtect((char*)0x400000, 0x100000, PAGE_EXECUTE_READWRITE, &old_protect);
-
 	ParseCommandLine();
+
+	if (!config.enable_hooks) {
+		return true;
+	}
 
 	if (config.do_input_playback) {
 		Hooks::HookGetAsyncKeyState();
@@ -68,6 +74,10 @@ bool onStartup(char *pluginName) {
 }
 
 void onNewGame() {
+	if (!config.enable_hooks) {
+		return;
+	}
+
 	// Touch all actor conditions once, this initializes the status array to 0....0
 	// because Player is not savegame compatible here
 	for (int i = 0; i < RPG::actors.count(); ++i) {
@@ -80,6 +90,10 @@ void onNewGame() {
 }
 
 void onFrame (RPG::Scene scene) {
+	if (!config.enable_hooks) {
+		return;
+	}
+
 	static int last_written_save = 0;
 
 	if (config.do_input_playback) {
