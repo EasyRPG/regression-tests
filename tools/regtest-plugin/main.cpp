@@ -59,6 +59,18 @@ bool onStartup(char *pluginName) {
 	return true;
 }
 
+void onNewGame() {
+	// Touch all actor conditions once, this initializes the status array to 0....0
+	// because Player is not savegame compatible here
+	for (int i = 0; i < RPG::actors.count(); ++i) {
+		RPG::Actor* actor = RPG::actors[i + 1];
+		asm volatile("call *%%esi"
+			:
+			: "S" (0x4BFF8C), "a" (actor), "d" (1)
+			: "ecx", "cc", "memory");
+	}
+}
+
 void onFrame (RPG::Scene scene) {
 	if (config.do_input_playback) {
 		printf("%d ", RPG::system->frameCounter);
