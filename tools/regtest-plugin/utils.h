@@ -52,3 +52,10 @@ std::vector<std::string> tokenize(const std::string &str_to_tokenize) {
 
 	return tokens;
 }
+
+// converts to local codepage, not utf-8!
+std::string wchar_to_char(const wchar_t* inwchar) {
+	char outbuf[255];
+	WideCharToMultiByte(CP_ACP, 0, inwchar, -1, outbuf, sizeof(outbuf), NULL, NULL);
+	return std::string(outbuf);
+}

@@ -13,7 +13,7 @@ namespace Hooks {
 		return Input::IsPressed(vKey) ? 0x8000 : 0;
 	}
 
-	void Install() {
+	void HookGetAsyncKeyState() {
 		// Hook GetAsyncKeyState
 		auto user32 = LoadLibrary("User32.dll");
 		auto addr = GetProcAddress(user32, "GetAsyncKeyState");
