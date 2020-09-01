@@ -7,6 +7,7 @@ namespace Hooks {
 	subhook::Hook GetAsyncKeyState_hook;
 	subhook::Hook CreateFile_hook;
 	subhook::Hook GetLocalTime_hook;
+	subhook::Hook MainLoop_hook;
 	std::string savefile;
 
 	// chosen by a fair dice roll.
@@ -15,6 +16,7 @@ namespace Hooks {
 	}; // mov eax, 4; ret
 
 	using createFile_t = std::add_pointer<decltype(CreateFileA)>::type;
+	using mainLoopHook_t = __attribute__((regparm(1))) void (*)(void*);
 
 	__stdcall SHORT MyGetAsyncKeyState(int vKey) {
 		return Input::IsPressed(vKey) ? 0x8000 : 0;
@@ -71,5 +73,11 @@ namespace Hooks {
 
 	void HookGetLocalTime() {
 		GetLocalTime_hook.Install((void *)GetLocalTime, (void *)MyGetLocalTime);
+	}
+
+	void HookMainLoop(mainLoopHook_t hook_fn) {
+		// Hooks the UpdateInput function (directly after "inc framecounter")
+		// in the RPG_RT main loop
+		Hooks::MainLoop_hook.Install((void *)0x46D030, (void *)hook_fn);
 	}
 }

@@ -50,6 +50,8 @@ void ParseCommandLine() {
 	}
 }
 
+__attribute__((regparm(1))) void MainLoopHook(void* a1);
+
 bool onStartup(char *pluginName) {
 	ParseCommandLine();
 
@@ -65,6 +67,10 @@ bool onStartup(char *pluginName) {
 	if (config.do_regtest) {
 		DeleteFileA(config.regtest_savegame.c_str());
 		Hooks::HookCreateFile(config.regtest_savegame);
+	}
+
+	if (config.do_regtest || config.do_input_playback) {
+		Hooks::HookMainLoop(MainLoopHook);
 	}
 
 	Hooks::HookRng();
@@ -89,7 +95,7 @@ void onNewGame() {
 	}
 }
 
-void onFrame (RPG::Scene scene) {
+__attribute__((regparm(1))) void MainLoopHook(void* a1) {
 	if (!config.enable_hooks) {
 		return;
 	}
@@ -110,12 +116,14 @@ void onFrame (RPG::Scene scene) {
 		printf("\n");
 	}
 
-	if (scene != RPG::SCENE_TITLE &&
+	if (RPG::system->scene != RPG::SCENE_TITLE &&
 			config.do_regtest &&
 			RPG::system->frameCounter > last_written_save) {
 		RPG::fileSaveLoad->saveFile(42);
 		last_written_save = RPG::system->frameCounter;
 	}
+
+	((Hooks::mainLoopHook_t)Hooks::MainLoop_hook.GetTrampoline())(a1);
 }
 
 
