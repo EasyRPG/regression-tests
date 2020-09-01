@@ -8,6 +8,7 @@ namespace Hooks {
 	subhook::Hook CreateFile_hook;
 	subhook::Hook GetLocalTime_hook;
 	subhook::Hook MainLoop_hook;
+	subhook::Hook ResizeSubcommand_hook;
 	std::string savefile;
 
 	// chosen by a fair dice roll.
@@ -17,6 +18,7 @@ namespace Hooks {
 
 	using createFile_t = std::add_pointer<decltype(CreateFileA)>::type;
 	using mainLoopHook_t = __attribute__((regparm(1))) void (*)(void*);
+	using resizeSubcommand_t = __attribute__((regparm(2))) void (*)(void*, int);
 
 	__stdcall SHORT MyGetAsyncKeyState(int vKey) {
 		return Input::IsPressed(vKey) ? 0x8000 : 0;
@@ -55,6 +57,28 @@ namespace Hooks {
 		st->wMilliseconds = 0;
 	}
 
+	__attribute__((regparm(2))) void MyResizeSubcommand(void* eventline, int new_size) {
+		// RPG::EventScriptData does not have the fields
+		using eventdata = struct {
+			int gap[9];
+			int subcommand_size;
+			char* subcommand;
+		};
+
+		auto* data = reinterpret_cast<eventdata*>(eventline);
+
+		if (new_size > data->subcommand_size) {
+			char* subcommand_out;
+			int old_size = data->subcommand_size;
+			data->subcommand_size = new_size;
+			asm volatile("call *%%esi"
+				: "=a" (subcommand_out)
+				: "S" (0x4027AC), "a" (&data->subcommand), "d" (new_size)
+				: "ecx", "cc", "memory");
+			memset(subcommand_out + old_size, '\xFF', new_size - old_size);
+		}
+	}
+
 	void HookGetAsyncKeyState() {
 		// Hook GetAsyncKeyState
 		GetAsyncKeyState_hook.Install((void *)GetAsyncKeyState, (void *)MyGetAsyncKeyState);
@@ -78,6 +102,11 @@ namespace Hooks {
 	void HookMainLoop(mainLoopHook_t hook_fn) {
 		// Hooks the UpdateInput function (directly after "inc framecounter")
 		// in the RPG_RT main loop
-		Hooks::MainLoop_hook.Install((void *)0x46D030, (void *)hook_fn);
+		MainLoop_hook.Install((void *)0x46D030, (void *)hook_fn);
+	}
+
+	void HookResizeSubcommand() {
+		// Initializes the subcommand array to known (255) values
+		ResizeSubcommand_hook.Install((void *)0x4ABE80, (void *)MyResizeSubcommand);
 	}
 }

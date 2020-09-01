@@ -75,6 +75,7 @@ bool onStartup(char *pluginName) {
 
 	Hooks::HookRng();
 	Hooks::HookGetLocalTime();
+	Hooks::HookResizeSubcommand();
 
 	return true;
 }
