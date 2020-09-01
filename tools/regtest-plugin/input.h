@@ -42,6 +42,10 @@ namespace Input {
 
 	void Init(const std::string& file) {
 		replay_file.open(file);
+
+		// Disable the input update timer (make it oneshot)
+		// The MainLoopHook handles this
+		*(char*)0x46C86F = '\0';
 	}
 
 	bool IsPressed(int key) {

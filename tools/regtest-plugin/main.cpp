@@ -114,6 +114,14 @@ __attribute__((regparm(1))) void MainLoopHook(void* a1) {
 
 		Input::Update();
 
+		// Invoke the input update timer function
+		// RPG_RT invokes it through a timer but this is not deterministic
+		asm volatile("call *%%esi"
+			:
+			: "S" (0x46CA14), "a" (RPG::input)
+			: "ecx", "edx", "cc", "memory");
+
+
 		printf("\n");
 	}
 
